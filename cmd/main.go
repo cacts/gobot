@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/cactauz/modules"
+	"github.com/cactauz/gobot"
 )
 
 var (
