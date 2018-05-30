@@ -8,6 +8,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"github.com/cactauz/modules"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -144,6 +145,14 @@ func getHandlers() []messageHandler {
 			if err != nil {
 				fmt.Println(err)
 			}
+		},
+	}
+
+	raceHandler := messageHandler{func(s string) bool {
+		return strings.Index(s, "!race") == 0
+	},
+		func(s *discordgo.Session, m *discordgo.MessageCreate) {
+			modules.HandleRaceCommand(s, m)
 		},
 	}
 
