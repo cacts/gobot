@@ -8,9 +8,9 @@ import (
 	"strings"
 	"syscall"
 	"time"
-	"github.com/cactauz/modules"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/cactauz/modules"
 )
 
 var (
@@ -22,19 +22,21 @@ func init() {
 	flag.Parse()
 }
 
-var timeoutChan chan bool
+var timeoutChans = map[string]chan bool{}
 
-func init() {
-	timeoutChan = make(chan bool, 1)
-	timeoutChan <- true
-}
+func getTimeout(channelID string) bool {
+	tc, ok := timeoutChans[channelID]
+	if !ok {
+		tc = make(chan bool, 1)
+		timeoutChans[channelID] = tc
+		timeoutChans[channelID] <- true
+	}
 
-func getTimeout() bool {
 	select {
-	case t := <-timeoutChan:
+	case t := <-tc:
 		go func() {
 			time.Sleep(2 * time.Minute)
-			timeoutChan <- true
+			timeoutChans[channelID] <- true
 		}()
 		return t
 	default:
@@ -116,7 +118,7 @@ func getHandlers() []messageHandler {
 				id = prev[0].ID
 			}
 
-			if !getTimeout() {
+			if !getTimeout(m.ChannelID) {
 				return
 			}
 
@@ -137,7 +139,7 @@ func getHandlers() []messageHandler {
 		return strings.Contains(s, "nice")
 	},
 		func(s *discordgo.Session, m *discordgo.MessageCreate) {
-			if !getTimeout() {
+			if !getTimeout(m.ChannelID) {
 				return
 			}
 
@@ -156,7 +158,7 @@ func getHandlers() []messageHandler {
 		},
 	}
 
-	return []messageHandler{frog, b, lmao, nice}
+	return []messageHandler{frog, b, lmao, nice, raceHandler}
 }
 
 var handlers []messageHandler
@@ -171,11 +173,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
-	if m.Author.ID == s.State.User.ID || m.Author.ID == "124571897391349760" {
+	if m.Author.ID == s.State.User.ID /*|| m.Author.ID == "124571897391349760"*/ {
 		return
 	}
 
-	fmt.Printf("%v (embeds %v)\n", m.Content, m.Embeds)
+	fmt.Printf("%v: %v (embeds %v)\n", m.ChannelID, m.Content, m.Embeds)
 
 	for _, handler := range handlers {
 		if handler.matcher(m.Content) {
