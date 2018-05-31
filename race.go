@@ -128,7 +128,7 @@ func (r *race) updateRaceInProgress() {
 	message := "and they're off!\n```"
 	for _, p := range r.participants {
 		progress := math.Min(p.progress*50, 50)
-		icon string
+		var icon string
 		if p.dead {
 			icon = "💥"
 		} else {
