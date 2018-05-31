@@ -76,7 +76,6 @@ func main() {
 
 type messageHandler struct {
 	matcher func(s string) bool
-	// return true to trigger global spam timeout
 	exec func(s *discordgo.Session, m *discordgo.MessageCreate)
 }
 
