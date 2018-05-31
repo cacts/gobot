@@ -13,6 +13,7 @@ import (
 type participant struct {
 	*discordgo.User
 	progress float64
+	dead     bool
 }
 
 func (p *participant) String() string {
@@ -77,6 +78,13 @@ func HandleRaceCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%v bruh the race already started", m.Author.Username))
 			}
 		}
+	case "detonate" if m.Author.ID == "126363515438104576":
+		name := strings.TrimPrefix(m.Content, "!race detonate ")
+		for _, p := range currentRace.participants {
+			if p.User.Username == name {
+				p.dead = true
+			}
+		}
 	}
 
 	s.ChannelMessageDelete(m.ChannelID, m.Message.ID)
@@ -118,7 +126,14 @@ func (r *race) updateRaceInProgress() {
 	message := "and they're off!\n```"
 	for _, p := range r.participants {
 		progress := math.Min(p.progress*50, 50)
-		message += fmt.Sprintf("%-20s 🏁%50s🚦\n", p, "🚗"+strings.Repeat("~", int(math.Max(progress-1, 0))))
+		icon string
+		if p.dead {
+			icon = "💥"
+		} else {
+			icon = "🚗"
+		}
+		
+		message += fmt.Sprintf("%-20s 🏁%50s🚦\n", p, icon+strings.Repeat("~", int(math.Max(progress-1, 0))))
 	}
 	message += "```"
 	r.raceMessage, _ = r.ChannelMessageEdit(r.channelID, r.raceMessage.ID, message)
@@ -130,7 +145,9 @@ func (r *race) startRace() {
 	raceTicker := time.NewTicker(1500 * time.Millisecond)
 	for range raceTicker.C {
 		for _, p := range r.participants {
-			p.progress += math.Abs(.8-rand.Float64()) * .08
+			if !p.dead {
+				p.progress += math.Abs(.8-rand.Float64()) * .08
+			}
 
 			if p.progress > 1 {
 				r.updateRaceInProgress()
