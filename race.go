@@ -107,7 +107,7 @@ func (r *race) hasParticipant(p *participant) bool {
 }
 
 func (r *race) enterUser(user *discordgo.User) {
-	newParticipant := &participant{user, 0.0}
+	newParticipant := &participant{user, 0.0, false}
 
 	if r.hasParticipant(newParticipant) {
 		r.ChannelMessageSend(r.channelID, fmt.Sprintf("%v is already in the race idiot", newParticipant))
