@@ -152,15 +152,25 @@ func getHandlers() []messageHandler {
 		},
 	}
 
-	raceHandler := messageHandler{func(s string) bool {
-		return strings.Index(s, "!race") == 0
-	},
-		func(s *discordgo.Session, m *discordgo.MessageCreate) {
-			modules.HandleRaceCommand(s, m)
-		},
-	}
+        fuckboy := messageHandler{func (s string) bool {
+                return strings.Index(s, "!mixy") == 0
+        },
+                func(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	return []messageHandler{frog, b, lmao, nice, raceHandler}
+                        res := []rune{'f','u','c','k','b','o','y'}
+                        for _, c := range res {
+                                if c <= 'z' {   
+                                        c = rune(127462 + int(c) - 97)
+                                }
+                                err := s.MessageReactionAdd(m.ChannelID, m.ID, fmt.Sprintf("%c", c))
+                                if err != nil {
+                                        fmt.Println(err)
+                                }
+                        }
+                },
+        }
+
+        return []messageHandler{frog, b, lmao, nice, raceHandler, fuckboy}
 }
 
 var handlers []messageHandler
