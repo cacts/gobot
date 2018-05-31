@@ -151,6 +151,15 @@ func getHandlers() []messageHandler {
 			}
 		},
 	}
+	
+	raceHandler := messageHandler{func(s string) bool {
+		return strings.Index(s, "!race") == 0
+	},
+		func(s *discordgo.Session, m *discordgo.MessageCreate) {
+			modules.HandleRaceCommand(s, m)
+		},
+	}
+
 
         fuckboy := messageHandler{func (s string) bool {
                 return strings.Index(s, "!mixy") == 0
