@@ -77,12 +77,12 @@ func HandleRaceCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
 			} else {
 				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%v bruh the race already started", m.Author.Username))
 			}
-		}
-	case "detonate" if m.Author.ID == "126363515438104576":
-		name := strings.TrimPrefix(m.Content, "!race detonate ")
-		for _, p := range currentRace.participants {
-			if p.User.Username == name {
-				p.dead = true
+		case "detonate" if m.Author.ID == "126363515438104576":
+			name := strings.TrimPrefix(m.Content, "!race detonate ")
+			for _, p := range currentRace.participants {
+				if p.User.Username == name {
+					p.dead = true
+				}
 			}
 		}
 	}
