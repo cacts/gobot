@@ -27,6 +27,7 @@ var timeoutChans = map[string]chan bool{}
 func getTimeout(channelID string) bool {
 	tc, ok := timeoutChans[channelID]
 	if !ok {
+		// TODO: this is almost certainly bad
 		tc = make(chan bool, 1)
 		timeoutChans[channelID] = tc
 		timeoutChans[channelID] <- true
@@ -85,6 +86,7 @@ func getHandlers() []messageHandler {
 			return strings.Contains(s, "frogsiren")
 		},
 		func(s *discordgo.Session, m *discordgo.MessageCreate) {
+			// TODO: remove hardcoded emojis
 			err := s.MessageReactionAdd(m.ChannelID, m.ID, "a:frogsiren:396018906449313802")
 			if err != nil {
 				fmt.Println(err)
@@ -143,6 +145,7 @@ func getHandlers() []messageHandler {
 				return
 			}
 
+			// TODO: remove hardcoded emojis
 			err := s.MessageReactionAdd(m.ChannelID, m.ID, ":nice:395993706697719811")
 			if err != nil {
 				fmt.Println(err)
@@ -172,11 +175,11 @@ func init() {
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Ignore all messages created by the bot itself
-	// This isn't required in this specific example but it's a good practice.
-	if m.Author.ID == s.State.User.ID /*|| m.Author.ID == "124571897391349760"*/ {
+	if m.Author.ID == s.State.User.ID {
 		return
 	}
 
+	// debug messages
 	fmt.Printf("%v: %v (embeds %v)\n", m.ChannelID, m.Content, m.Embeds)
 
 	for _, handler := range handlers {
@@ -184,20 +187,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			fmt.Println("matched")
 			handler.exec(s, m)
 			return
-		}
-	}
-
-	if strings.Contains(m.Content, "<@126363515438104576>") {
-		s.ChannelMessageSend(m.ChannelID, "no paging <@126363515438104576>")
-	}
-
-	if m.Content == "bot emergency mode" && m.Author.ID == "126363515438104576" {
-		msgs, _ := s.ChannelMessages(m.ChannelID, 100, m.ID, "", "")
-		for _, m := range msgs {
-			err := s.MessageReactionAdd(m.ChannelID, m.ID, "a:canyounot:397537060828872715")
-			if err != nil {
-				fmt.Println(err)
-			}
 		}
 	}
 }
