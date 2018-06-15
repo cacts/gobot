@@ -197,6 +197,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+
+	if strings.HasPrefix(m.Content, "<@447429502390370315>" {
+		s.ChannelMessageSend(m.ChannelID, "@&%v :fingerguns:342698356818182156")
+	}
+
 	// debug messages
 	fmt.Printf("%v: %v (embeds %v)\n", m.ChannelID, m.Content, m.Embeds)
 
