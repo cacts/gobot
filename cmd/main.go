@@ -208,6 +208,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		} else {
 			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("<@%v> <:fingerguns:342698356818182156>", m.Author.ID))
 		}
+
+		s.ChannelMessageDelete(m.ChannelID, m.ID)
 	}
 
 	// debug messages
