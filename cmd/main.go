@@ -209,7 +209,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("<@%v> <:fingerguns:342698356818182156>", m.Author.ID))
 		}
 
-		s.ChannelMessageDelete(m.ChannelID, m.ID)
+		err := s.ChannelMessageDelete(m.ChannelID, m.ID)
+		if err != nil {
+			println(err)
+		}
 	}
 
 	// debug messages
