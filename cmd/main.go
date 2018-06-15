@@ -252,6 +252,7 @@ type coinbaseReponse struct {
 	Bpi bpi `json:"bpi"`
 }
 
+// blah blah Powered by Coinbase https://www.coindesk.com/price/
 func btcPrice() string {
 	url := "https://api.coindesk.com/v1/bpi/currentprice.json"
 
