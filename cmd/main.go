@@ -264,12 +264,14 @@ func btcPrice() string {
 	res, err := client.Do(req)
 	if err != nil {
 		println(err)
+		return ""
 	}
 
 	response := coinbaseReponse{}
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		println(err)
+		return ""
 	}
 
 	err = json.Unmarshal(body, &response)
