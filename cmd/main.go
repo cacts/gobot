@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -66,6 +69,16 @@ func main() {
 
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+
+	btcTicker := time.NewTicker(time.Minute)
+
+	dg.UpdateStreamingStatus(0, btcPrice(), "")
+	go func() {
+		for range btcTicker.C {
+			dg.UpdateStreamingStatus(0, btcPrice(), "")
+		}
+	}()
+
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
@@ -225,4 +238,43 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 	}
+}
+
+type bpi struct {
+	USD USD `json:"USD"`
+}
+
+type USD struct {
+	Price float32 `json:"rate_float"`
+}
+
+type coinbaseReponse struct {
+	Bpi bpi `json:"bpi"`
+}
+
+func btcPrice() string {
+	url := "https://api.coindesk.com/v1/bpi/currentprice.json"
+
+	client := http.Client{
+		Timeout: time.Second * 2,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	res, err := client.Do(req)
+	if err != nil {
+		println(err)
+	}
+	println(res)
+	response := coinbaseReponse{}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		println(err)
+	}
+	println(body)
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		println(err)
+	}
+
+	return fmt.Sprintf("BTC $%.2fUSD", response.Bpi.USD.Price)
 }
