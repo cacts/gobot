@@ -206,7 +206,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if strings.HasPrefix(message, "<:") && strings.HasSuffix(message, ">") {
 			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("@<%v> %v", m.Author.ID, message))
 		} else {
-			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("@<%v> <:fingerguns:342698356818182156>", m.Author.ID))
+			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("<@%v> <:fingerguns:342698356818182156>", m.Author.ID))
 		}
 	}
 
