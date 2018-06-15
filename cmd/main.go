@@ -70,7 +70,7 @@ func main() {
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 
-	btcTicker := time.NewTicker(time.Minute)
+	btcTicker := time.NewTicker(30 * time.Second)
 
 	dg.UpdateStreamingStatus(0, btcPrice(), "")
 	go func() {
@@ -276,5 +276,5 @@ func btcPrice() string {
 		println(err)
 	}
 
-	return fmt.Sprintf("BTC $%.2fUSD", response.Bpi.USD.Price)
+	return fmt.Sprintf("BTC $%.2f", response.Bpi.USD.Price)
 }
