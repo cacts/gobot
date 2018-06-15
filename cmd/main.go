@@ -76,7 +76,7 @@ func main() {
 
 type messageHandler struct {
 	matcher func(s string) bool
-	exec func(s *discordgo.Session, m *discordgo.MessageCreate)
+	exec    func(s *discordgo.Session, m *discordgo.MessageCreate)
 }
 
 func getHandlers() []messageHandler {
@@ -151,7 +151,7 @@ func getHandlers() []messageHandler {
 			}
 		},
 	}
-	
+
 	raceHandler := messageHandler{func(s string) bool {
 		return strings.Index(s, "!race") == 0
 	},
@@ -160,26 +160,25 @@ func getHandlers() []messageHandler {
 		},
 	}
 
+	fuckboy := messageHandler{func(s string) bool {
+		return strings.Index(s, "!mixy") == 0
+	},
+		func(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-        fuckboy := messageHandler{func (s string) bool {
-                return strings.Index(s, "!mixy") == 0
-        },
-                func(s *discordgo.Session, m *discordgo.MessageCreate) {
+			res := []rune{'f', 'u', 'c', 'k', 'b', 'o', 'y'}
+			for _, c := range res {
+				if c <= 'z' {
+					c = rune(127462 + int(c) - 97)
+				}
+				err := s.MessageReactionAdd(m.ChannelID, m.ID, fmt.Sprintf("%c", c))
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+		},
+	}
 
-                        res := []rune{'f','u','c','k','b','o','y'}
-                        for _, c := range res {
-                                if c <= 'z' {   
-                                        c = rune(127462 + int(c) - 97)
-                                }
-                                err := s.MessageReactionAdd(m.ChannelID, m.ID, fmt.Sprintf("%c", c))
-                                if err != nil {
-                                        fmt.Println(err)
-                                }
-                        }
-                },
-        }
-
-        return []messageHandler{frog, b, lmao, nice, raceHandler, fuckboy}
+	return []messageHandler{frog, b, lmao, nice, raceHandler, fuckboy}
 }
 
 var handlers []messageHandler
@@ -197,8 +196,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-
-	if strings.HasPrefix(m.Content, "<@447429502390370315>" {
+	if strings.HasPrefix(m.Content, "<@447429502390370315>") {
 		s.ChannelMessageSend(m.ChannelID, "@&%v :fingerguns:342698356818182156")
 	}
 
