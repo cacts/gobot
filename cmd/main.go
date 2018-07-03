@@ -102,23 +102,23 @@ func main() {
 		}
 	}()
 
-	roles, _ := dg.GuildRoles("124572142485504002")
-	var rRole *discordgo.Role
-	for _, r := range roles {
-		if r.ID == "438028062303453205" {
-			rRole = r
-		}
-	}
+	// roles, _ := dg.GuildRoles("124572142485504002")
+	// var rRole *discordgo.Role
+	// for _, r := range roles {
+	// 	if r.ID == "438028062303453205" {
+	// 		rRole = r
+	// 	}
+	// }
 
-	rainbow := rainbow()
+	// rainbow := rainbow()
 
-	rainbowTicker := time.NewTicker(250 * time.Millisecond)
+	// rainbowTicker := time.NewTicker(250 * time.Millisecond)
 
-	go func() {
-		for range rainbowTicker.C {
-			dg.GuildRoleEdit("124572142485504002", "438028062303453205", rRole.Name, rainbow(), rRole.Hoist, rRole.Permissions, rRole.Mentionable)
-		}
-	}()
+	// go func() {
+	// 	for range rainbowTicker.C {
+	// 		dg.GuildRoleEdit("124572142485504002", "438028062303453205", rRole.Name, rainbow(), rRole.Hoist, rRole.Permissions, rRole.Mentionable)
+	// 	}
+	// }()
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
