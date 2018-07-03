@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"os"
 	"os/signal"
@@ -48,6 +49,28 @@ func getTimeout(channelID string) bool {
 	}
 }
 
+var steps = 128
+
+func sinToHex(i int, phase float64) int {
+	sin := math.Sin(math.Pi/float64(steps)*2.0*float64(i) + phase)
+	asInt := math.Floor(sin*127) + 128
+	return int(asInt)
+}
+
+func rainbow() func() int {
+	idx := 0
+
+	return func() int {
+		idx = (idx + 1) % steps
+
+		r := sinToHex(idx, 0*math.Pi*2.0/3.0)
+		g := sinToHex(idx, 1*math.Pi*2.0/3.0)
+		b := sinToHex(idx, 2*math.Pi*2.0/3.0)
+
+		return (r << 16) | (g << 8) | (b)
+	}
+}
+
 func main() {
 
 	// Create a new Discord session using the provided bot token.
@@ -76,6 +99,24 @@ func main() {
 	go func() {
 		for range btcTicker.C {
 			dg.UpdateStreamingStatus(0, btcPrice(), "")
+		}
+	}()
+
+	roles, _ := dg.GuildRoles("124572142485504002")
+	var rRole *discordgo.Role
+	for _, r := range roles {
+		if r.ID == "438028062303453205" {
+			rRole = r
+		}
+	}
+
+	rainbow := rainbow()
+
+	rainbowTicker := time.NewTicker(250 * time.Millisecond)
+
+	go func() {
+		for range rainbowTicker.C {
+			dg.GuildRoleEdit("124572142485504002", "438028062303453205", rRole.Name, rainbow(), rRole.Hoist, rRole.Permissions, rRole.Mentionable)
 		}
 	}()
 
