@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -93,12 +94,43 @@ func main() {
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 
-	btcTicker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
+	updateTicker := func() {
+		timeleft := time.Date(2018, 12, 7, 19, 0, 0, 0, time.UTC).Sub(time.Now()).Round(time.Second)
 
-	dg.UpdateStreamingStatus(0, btcPrice(), "")
+		d := timeleft / (24 * time.Hour)
+		timeleft -= 24 * time.Hour * d
+		h := timeleft / time.Hour
+		timeleft -= h * time.Hour
+		m := timeleft / time.Minute
+		timeleft -= m * time.Minute
+		s := timeleft / time.Second
+
+		var str string
+		if timeleft < 0 {
+			str = "GL WITH UR MEPS!!"
+		} else {
+			if d > 0 {
+				str += fmt.Sprintf("%dd ", d)
+			}
+			if d > 0 || h > 0 {
+				str += fmt.Sprintf("%dh ", h)
+			}
+			if d > 0 || h > 0 || m > 0 {
+				str += fmt.Sprintf("%dm ", m)
+			}
+			str += fmt.Sprintf("%ds", s)
+		}
+
+		dg.UpdateStatus(0, fmt.Sprintf("%s TIL POE", str))
+	}
+
+	updateTicker()
 	go func() {
-		for range btcTicker.C {
-			dg.UpdateStreamingStatus(0, btcPrice(), "")
+		for range ticker.C {
+			if (time.Now().Second())%5 == 0 {
+				updateTicker()
+			}
 		}
 	}()
 
@@ -131,6 +163,13 @@ func main() {
 type messageHandler struct {
 	matcher func(s string) bool
 	exec    func(s *discordgo.Session, m *discordgo.MessageCreate)
+}
+
+type poeprices struct {
+	Status   int     `json:"status"`
+	Min      float64 `json:"min"`
+	Max      float64 `json:"max"`
+	Currency string  `json:"currency"`
 }
 
 func getHandlers() []messageHandler {
@@ -232,7 +271,50 @@ func getHandlers() []messageHandler {
 		},
 	}
 
-	return []messageHandler{frog, b, lmao, nice, raceHandler, fuckboy}
+	baseUrl := "https://www.poeprices.info/api?l=Delve&i="
+	client := http.Client{Timeout: time.Second * 5}
+	/// https://www.poeprices.info/api?l=Delve&i=......&w=1
+	poeprices := messageHandler{func(s string) bool {
+		return strings.Index(s, "poepc ") == 0
+	}, func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		item := strings.TrimPrefix(m.Content, "poepc ")
+		fmt.Println(item)
+		encoded := base64.URLEncoding.EncodeToString([]byte(item))
+		req, err := http.NewRequest(http.MethodGet, baseUrl+encoded, nil)
+		if err != nil {
+			fmt.Println("err on newrequest", err)
+			return
+		}
+		res, err := client.Do(req)
+		if err != nil {
+			fmt.Println("err getting response", err)
+			return
+		}
+
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			fmt.Println("err reading body", err)
+			return
+		}
+		price := poeprices{}
+		err = json.Unmarshal(body, &price)
+		if err != nil {
+			fmt.Println("err unmarshalling json", err, string(body))
+			return
+		}
+
+		if price.Status != 200 {
+			fmt.Println("err status", body)
+			return
+		}
+
+		_, err = s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("ML price estimate %.1f - %.1f %s", price.Min, price.Max, price.Currency))
+		if err != nil {
+			fmt.Println("err sending to channel", err)
+		}
+	}}
+
+	return []messageHandler{frog, b, lmao, nice, raceHandler, fuckboy, poeprices}
 }
 
 var handlers []messageHandler
