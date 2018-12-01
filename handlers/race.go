@@ -1,4 +1,4 @@
-package modules
+package handlers
 
 import (
 	"fmt"
@@ -7,8 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"../../gobot"
 	"github.com/bwmarrin/discordgo"
 )
+
+func init() {
+	gobot.Global.AddMessageHandler(gobot.NewPrefixHandler("!race", raceHandler))
+}
 
 type participant struct {
 	*discordgo.User
@@ -58,7 +63,7 @@ func setupNewRace(s *discordgo.Session, channelID string) {
 	currentRace.prepare()
 }
 
-func HandleRaceCommand(s *discordgo.Session, m *discordgo.MessageCreate) {
+func raceHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	command := strings.TrimPrefix(m.Content, "!race ")
 	println(command)
 	if currentRace == nil {
@@ -134,7 +139,7 @@ func (r *race) updateRaceInProgress() {
 		} else {
 			icon = "🚗"
 		}
-		
+
 		message += fmt.Sprintf("%-20s 🏁%50s🚦\n", p, icon+strings.Repeat("~", int(math.Max(progress-1, 0))))
 	}
 	message += "```"
