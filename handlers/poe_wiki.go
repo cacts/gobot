@@ -93,7 +93,7 @@ func decodeResponse(itemReader io.Reader) io.Reader {
 
 	go func() {
 		for {
-			n, err := itemReader.Read(buf[:])
+			n, err := itemReader.Read(buf)
 
 			if n > 0 {
 				_, err := pw.Write(buf[:n])
@@ -124,7 +124,7 @@ func decodeResponse(itemReader io.Reader) io.Reader {
 			}
 		}
 	}()
-	
+
 	return pr
 }
 
