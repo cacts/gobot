@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"strings"
 
-	"../../gobot"
+	"github.com/cactauz/gobot" 
 	"github.com/bwmarrin/discordgo"
-)
+) 
 
 const ()
 
 func init() {
-	gobot.Global.AddMessageHandler(gobot.NewContainsHandler(gobot.BOT_ID, fingerGunsReplyHandler))
-	gobot.Global.AddMessageHandler(gobot.NewContainsHandler("lmao", lmaoHandler))
-	gobot.Global.AddMessageHandler(gobot.NewContainsHandler("nice", niceHandler))
-	gobot.Global.AddMessageHandler(gobot.NewContainsHandler(" b ", bHandler))
-	gobot.Global.AddMessageHandler(gobot.NewPrefixHandler("!mixy", fuckboyHandler))
+	gobot.Global.AddMessageHandler(NewContainsHandler(gobot.BOT_ID, fingerGunsReplyHandler))
+	gobot.Global.AddMessageHandler(NewContainsHandler("lmao", lmaoHandler))
+	gobot.Global.AddMessageHandler(NewContainsHandler("nice", niceHandler))
+	gobot.Global.AddMessageHandler(NewContainsHandler(" b ", bHandler))
+	gobot.Global.AddMessageHandler(NewPrefixHandler("!mixy", fuckboyHandler))
 }
 
 func fuckboyHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -88,7 +88,7 @@ func fingerGunsReplyHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if len(split) > 1 {
 		message = split[1]
 	}
-	println(message)
+	
 	if strings.HasPrefix(message, "<") && strings.HasSuffix(message, ">") {
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("<@%v> %v", m.Author.ID, message))
 	} else {

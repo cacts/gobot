@@ -4,16 +4,22 @@ import (
 	"fmt"
 	"time"
 
-	"../../gobot"
+	"github.com/cactauz/gobot" 
 	"github.com/bwmarrin/discordgo"
 )
 
+var (
+	target = time.Date(2018, 12, 7, 19, 0, 0, 0, time.UTC)
+)
+
 func init() {
-	gobot.Global.AddTickHandler(gobot.NewSimpleTickHandler("poe_countdown", 5, poeTicker))
+	if time.Now().Sub(target) < 0 {
+	 gobot.Global.AddTickHandler(NewSimpleTickHandler("poe_countdown", 5, poeTicker))
+	}
 }
 
 func poeTicker(sess *discordgo.Session) {
-	timeleft := time.Date(2018, 12, 7, 19, 0, 0, 0, time.UTC).Sub(time.Now()).Round(time.Second)
+	timeleft := target.Sub(time.Now()).Round(time.Second)
 
 	d := timeleft / (24 * time.Hour)
 	timeleft -= 24 * time.Hour * d
@@ -25,12 +31,13 @@ func poeTicker(sess *discordgo.Session) {
 
 	var str string
 	if timeleft < 0 {
-		str = "GL WITH UR MEPS!!"
+		sess.UpdateStatus(0, "GL WITH UR MEPS!!")
+		gobot.Global.RemoveTickHandler("poe_countdown")
 	} else {
 		if d > 0 {
 			str += fmt.Sprintf("%dd ", d)
 		}
-		if d > 0 || h > 0 {
+		if d > 0 || h > 0 { 
 			str += fmt.Sprintf("%dh ", h)
 		}
 		if d > 0 || h > 0 || m > 0 {

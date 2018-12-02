@@ -2,7 +2,7 @@ package gobot
 
 import (
 	"fmt"
-	"strings"
+	"sync"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -14,6 +14,7 @@ const (
 	FINGER_GUNS = ":fingerguns:342698356818182156"
 	NICE        = ":nice:395993706697719811"
 	FROGSIREN   = "a:frogsiren:396018906449313802"
+	PALSHIP_ID  = "124572142485504002"
 )
 
 var Global = &Gobot{}
@@ -23,17 +24,20 @@ type Gobot struct {
 	tickers  []TickHandler
 	ticker   *time.Ticker
 	stopCh   chan struct{}
-	discord  *discordgo.Session
+	discord  *discordgo.Session 
+	sync.Mutex
 }
 
 func (g *Gobot) Open(token string) error {
+	g.stopCh = make(chan struct{}, 1) 
+	
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
-		return err
+		return err 
 	}
-
+ 
 	dg.AddHandler(g.onMessageCreate)
 	g.discord = dg
 
@@ -42,15 +46,22 @@ func (g *Gobot) Open(token string) error {
 		fmt.Println("error opening connection,", err)
 		return err
 	}
-
+ 
 	g.startTicking()
 
 	return nil
 }
 
+func (g *Gobot) SendMessage(message string) {
+	g.discord.ChannelMessageSend(PALSHIP_ID, message)
+}
+
+func (g *Gobot) Session()  *discordgo.Session {
+	return g.discord
+}
+ 
 func (g *Gobot) startTicking() {
-	g.stopCh = make(chan struct{}, 1)
-	g.ticker = time.NewTicker(1 * time.Second)
+	g.ticker = time.NewTicker(1 * time.Second) 
 
 	// do all initial ticks
 	for _, t := range g.tickers {
@@ -66,9 +77,13 @@ func (g *Gobot) startTicking() {
 			case <-g.stopCh:
 				return
 			case <-g.ticker.C:
-				for _, t := range g.tickers {
+				g.Lock()
+				tickers := g.tickers
+				g.Unlock()
+
+				for _, t := range tickers {
 					if time.Now().Second()%t.Interval() == 0 {
-						t.Tick(g.discord)
+						go t.Tick(g.discord)
 					}
 				}
 			}
@@ -81,6 +96,7 @@ func (g *Gobot) Close() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	g.stopCh <- struct{}{}
 }
 
@@ -89,81 +105,65 @@ type MessageHandler interface {
 	Handle(s *discordgo.Session, m *discordgo.MessageCreate)
 }
 
-type SimpleHandler struct {
-	matchStr string
-	matchFn  func(string) bool
-	handler  func(s *discordgo.Session, m *discordgo.MessageCreate)
-}
-
-func NewPrefixHandler(prefix string, handler func(s *discordgo.Session, m *discordgo.MessageCreate)) *SimpleHandler {
-	return &SimpleHandler{
-		matchStr: prefix,
-		matchFn:  func(s string) bool { return strings.HasPrefix(s, prefix) },
-		handler:  handler,
-	}
-}
-
-func NewContainsHandler(contains string, handler func(s *discordgo.Session, m *discordgo.MessageCreate)) *SimpleHandler {
-	return &SimpleHandler{
-		matchStr: contains,
-		matchFn:  func(s string) bool { return strings.Contains(s, contains) },
-		handler:  handler,
-	}
-}
-
-func (sh *SimpleHandler) Name() string {
-	return sh.matchStr
-}
-
-func (sh *SimpleHandler) Handle(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if sh.matchFn(m.Content) {
-		str := m.Content
-		if len([]rune(str)) > 40 {
-			str = string([]rune(str)[:40])
-		}
-		fmt.Println(sh.matchStr, "matched", str)
-		sh.handler(s, m)
-	}
-}
-
 type TickHandler interface {
 	Name() string
 	Interval() int // seconds
 	Tick(*discordgo.Session)
 }
 
-type SimpleTickHandler struct {
-	name     string
-	interval int
-	tickFn   func(*discordgo.Session)
-}
-
-func NewSimpleTickHandler(name string, interval int, tickFn func(*discordgo.Session)) *SimpleTickHandler {
-	return &SimpleTickHandler{
-		name:     name,
-		interval: interval,
-		tickFn:   tickFn,
-	}
-}
-
-func (th *SimpleTickHandler) Name() string {
-	return th.name
-}
-
-func (th *SimpleTickHandler) Interval() int {
-	return th.interval
-}
-
-func (th *SimpleTickHandler) Tick(s *discordgo.Session) {
-	th.tickFn(s)
-}
-
+ 
 func (g *Gobot) AddMessageHandler(h MessageHandler) {
+	g.Lock()
+	defer g.Unlock()
+
 	g.handlers = append(g.handlers, h)
 }
 
+func (g *Gobot) RemoveMessageHandler(name string) {
+	g.Lock()
+	defer g.Unlock()
+
+	i := -1
+	for idx, h := range g.handlers {
+		if h.Name() == name {
+			i = idx
+			break
+		}
+	}
+
+	if i >= 0 {
+		l := len(g.handlers)
+		g.handlers[i] = g.handlers[l-1]
+		g.handlers[l-1] = nil
+		g.handlers = g.handlers[:l-1]
+	}
+}
+
 func (g *Gobot) AddTickHandler(t TickHandler) {
+	g.Lock()
+	defer g.Unlock()
+
 	g.tickers = append(g.tickers, t)
+}
+
+func (g *Gobot) RemoveTickHandler(name string) {
+	g.Lock()
+	defer g.Unlock()
+
+	i := -1
+	for idx, t := range g.tickers {
+		if t.Name() == name {
+			i = idx
+			break
+		}
+	}
+
+	if i >= 0 {
+		l := len(g.tickers)
+		g.tickers[i] = g.tickers[l-1]
+		g.tickers[l-1] = nil
+		g.tickers = g.tickers[:l-1]
+	}
 }
 
 func (g *Gobot) onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -173,7 +173,7 @@ func (g *Gobot) onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate
 	}
 
 	// debug messages
-	fmt.Printf("%v: %v (embeds %v)\n", m.ChannelID, m.Content, m.Embeds)
+	fmt.Printf("%s|%s:%s#%s> %s (embeds %v)\n", m.ChannelID, m.Author.ID, m.Author.Username, m.Author.Discriminator, m.Content, m.Embeds)
 
 	for _, handler := range g.handlers {
 		go handler.Handle(s, m)

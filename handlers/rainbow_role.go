@@ -3,7 +3,7 @@ package handlers
 import (
 	"math"
 
-	"../../gobot"
+	"github.com/cactauz/gobot" 
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -13,7 +13,7 @@ const (
 )
 
 func init() {
-	gobot.Global.AddTickHandler(gobot.NewSimpleTickHandler("rainbow", 1, rainbowTickHandler))
+	gobot.Global.AddTickHandler(NewSimpleTickHandler("rainbow", 1, rainbowTickHandler))
 }
 
 var steps = 128

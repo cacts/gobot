@@ -9,14 +9,14 @@ import (
 	"strings"
 	"time"
 
-	"../../gobot"
+	"github.com/cactauz/gobot" 
 	"github.com/bwmarrin/discordgo"
 )
 
 func init() {
-	gobot.Global.AddMessageHandler(gobot.NewPrefixHandler("poepc ", poePriceHandler))
+	gobot.Global.AddMessageHandler(NewPrefixHandler("poepc ", poePriceHandler))
 }
-
+ 
 const (
 	LEAGUE = "Delve"
 )
@@ -38,7 +38,7 @@ func poePriceHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	fmt.Println(item)
 	encoded := base64.URLEncoding.EncodeToString([]byte(item))
 	req, err := http.NewRequest(http.MethodGet, baseUrl+encoded, nil)
-	if err != nil {
+	if err != nil { 
 		fmt.Println("err on newrequest", err)
 		return
 	}
@@ -51,7 +51,7 @@ func poePriceHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println("err reading body", err)
-		return
+		return 
 	}
 	price := poePriceResponse{}
 	err = json.Unmarshal(body, &price)

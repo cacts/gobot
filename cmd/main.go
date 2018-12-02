@@ -1,19 +1,20 @@
 package main
 
-import (
+import ( 
+	"bufio"
 	"flag"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"../../gobot"
-	// load handler
-	_ "../handlers"
+	"github.com/cactauz/gobot" 
+	// load handlers
+	_ "github.com/cactauz/gobot/handlers"
 )
 
 var (
-	Token string
+	Token string 
 )
 
 func init() {
@@ -22,13 +23,53 @@ func init() {
 }
 
 func main() {
+	if Token == "" {
+		Token = os.Getenv("GOBOT_TOKEN")
+	}
+
 	gobot.Global.Open(Token)
+	defer gobot.Global.Close()
+
 	// Wait here until CTRL-C or other term signal is received.
-	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
+	fmt.Println("Bot is now running.  Type exit to quit.")
 
-	sc := make(chan os.Signal, 1)
+
+	sc := make(chan os.Signal, 1) 
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-	<-sc
 
-	gobot.Global.Close()
+	inCh := make(chan string)
+	go func() {
+		defer close(inCh)
+
+		reader := bufio.NewReader(os.Stdin)
+		for {
+			fmt.Print("> ")
+			text, err := reader.ReadString('\n')
+
+			
+			if err != nil { 
+				fmt.Println("error: ", err)
+			} 
+ 
+			if text == "exit\n" || text == "exit\r\n" { // windows pls...
+				sc <- os.Interrupt
+				return
+			}
+
+			inCh <- text
+		}
+	}()
+
+
+	for {
+		select {
+		case <-sc:
+			return
+		case text := <-inCh:
+			if text != "" {
+				gobot.Global.SendMessage(text)  
+			}
+		}
+	}
 }
+  

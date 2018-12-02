@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"../../gobot"
+	"github.com/cactauz/gobot" 
 	"github.com/bwmarrin/discordgo"
 )
-
+ 
 func init() {
-	gobot.Global.AddMessageHandler(gobot.NewPrefixHandler("!race", raceHandler))
-}
+	gobot.Global.AddMessageHandler(NewPrefixHandler("!race", raceHandler))
+} 
 
 type participant struct {
 	*discordgo.User
