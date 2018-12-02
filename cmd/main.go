@@ -48,7 +48,7 @@ func main() {
 
 			
 			if err != nil { 
-				fmt.Println("error: ", err)
+				fmt.Println("error:", err)
 			} 
  
 			if text == "exit\n" || text == "exit\r\n" { // windows pls...
