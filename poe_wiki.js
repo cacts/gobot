@@ -4,6 +4,7 @@
 const puppeteer = require('puppeteer');
 const wikiURL = "https://pathofexile.gamepedia.com/";
 const wikiDiv = ".infobox-page-container > .item-box";
+const wikiInfoDiv = ".infocard"
 const wikiInvalidPage = ".noarticletext"
 
 var browser;
@@ -57,7 +58,7 @@ async function getItemImage(name) {
         return output;
     }
 
-    var infoBox = await page.$('.infocard');
+    var infoBox = await page.$(wikiInfoDiv);
     if (infoBox != null) {
         try {
             output.screenshot = await infoBox.screenshot();
