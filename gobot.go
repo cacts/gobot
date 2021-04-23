@@ -10,11 +10,8 @@ import (
 
 const (
 	BOT_ID = "<@447429502390370315>"
-	// TODO: look these up from the api
-	FINGER_GUNS = ":fingerguns:342698356818182156"
-	NICE        = ":nice:395993706697719811"
-	FROGSIREN   = "a:frogsiren:396018906449313802"
-	PALSHIP_ID  = "124572142485504002"
+
+	DEFAULT_CHANNEL_ID = "396018642527059981"
 )
 
 var Global = &Gobot{}
@@ -24,20 +21,20 @@ type Gobot struct {
 	tickers  []TickHandler
 	ticker   *time.Ticker
 	stopCh   chan struct{}
-	discord  *discordgo.Session 
+	discord  *discordgo.Session
 	sync.Mutex
 }
 
 func (g *Gobot) Open(token string) error {
-	g.stopCh = make(chan struct{}, 1) 
-	
+	g.stopCh = make(chan struct{}, 1)
+
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
-		return err 
+		return err
 	}
- 
+
 	dg.AddHandler(g.onMessageCreate)
 	g.discord = dg
 
@@ -46,22 +43,22 @@ func (g *Gobot) Open(token string) error {
 		fmt.Println("error opening connection,", err)
 		return err
 	}
- 
+
 	g.startTicking()
 
 	return nil
 }
 
 func (g *Gobot) SendMessage(message string) {
-	g.discord.ChannelMessageSend(PALSHIP_ID, message)
+	g.discord.ChannelMessageSend(DEFAULT_CHANNEL_ID, message)
 }
 
-func (g *Gobot) Session()  *discordgo.Session {
+func (g *Gobot) Session() *discordgo.Session {
 	return g.discord
 }
- 
+
 func (g *Gobot) startTicking() {
-	g.ticker = time.NewTicker(1 * time.Second) 
+	g.ticker = time.NewTicker(1 * time.Second)
 
 	// do all initial ticks
 	for _, t := range g.tickers {
@@ -111,7 +108,6 @@ type TickHandler interface {
 	Tick(*discordgo.Session)
 }
 
- 
 func (g *Gobot) AddMessageHandler(h MessageHandler) {
 	g.Lock()
 	defer g.Unlock()

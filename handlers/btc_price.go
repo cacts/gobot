@@ -53,5 +53,5 @@ func btcPriceTicker(s *discordgo.Session) {
 		fmt.Println(err)
 	}
 
-	s.UpdateStatus(0, fmt.Sprintf("BTC $%.2f", response.Bpi.USD.Price))
+	s.UpdateGameStatus(0, fmt.Sprintf("BTC $%.2f", response.Bpi.USD.Price))
 }

@@ -1,15 +1,16 @@
 package handlers
 
 import (
+	"fmt"
 	"math"
 
-	"github.com/cactauz/gobot" 
 	"github.com/bwmarrin/discordgo"
+	"github.com/cactauz/gobot"
 )
 
 const (
-	GUILD_ID = "124572142485504002"
-	ROLE_ID  = "438028062303453205"
+	GUILD_ID = "396018642527059973"
+	ROLE_ID  = "835145640852848640"
 )
 
 func init() {
@@ -39,17 +40,33 @@ func rainbow() func() int {
 }
 
 var rainbowGen = rainbow()
+var rainbowRole *discordgo.Role
 
 func rainbowTickHandler(s *discordgo.Session) {
-	roles, _ := s.GuildRoles(GUILD_ID)
-	var rRole *discordgo.Role
+	if rainbowRole != nil {
+		var err error
+		rainbowRole, err = s.GuildRoleEdit(GUILD_ID, ROLE_ID, rainbowRole.Name, rainbowGen(), rainbowRole.Hoist, rainbowRole.Permissions, rainbowRole.Mentionable)
+		if err != nil {
+			fmt.Printf("error changing role color: %v\n", err)
+		}
+		return
+	}
+
+	roles, err := s.GuildRoles(GUILD_ID)
+	if err != nil {
+		fmt.Printf("error retrieving rainbow role: %v", err)
+		gobot.Global.RemoveTickHandler("rainbow")
+	}
+
 	for _, r := range roles {
 		if r.ID == ROLE_ID {
-			rRole = r
+			rainbowRole = r
+			break
 		}
 	}
 
-	if rRole != nil {
-		s.GuildRoleEdit(GUILD_ID, ROLE_ID, rRole.Name, rainbowGen(), rRole.Hoist, rRole.Permissions, rRole.Mentionable)
+	if rainbowRole == nil {
+		fmt.Printf("role %s doesnt exist in guild %s\n", ROLE_ID, GUILD_ID)
+		gobot.Global.RemoveTickHandler("rainbow")
 	}
 }

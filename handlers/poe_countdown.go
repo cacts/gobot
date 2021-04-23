@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cactauz/gobot" 
 	"github.com/bwmarrin/discordgo"
+	"github.com/cactauz/gobot"
 )
 
 var (
@@ -14,7 +14,7 @@ var (
 
 func init() {
 	if time.Now().Sub(target) < 0 {
-	 gobot.Global.AddTickHandler(NewSimpleTickHandler("poe_countdown", 5, poeTicker))
+		gobot.Global.AddTickHandler(NewSimpleTickHandler("poe_countdown", 5, poeTicker))
 	}
 }
 
@@ -31,13 +31,13 @@ func poeTicker(sess *discordgo.Session) {
 
 	var str string
 	if timeleft < 0 {
-		sess.UpdateStatus(0, "GL WITH UR MEPS!!")
+		sess.UpdateGameStatus(0, "GL WITH UR MEPS!!")
 		gobot.Global.RemoveTickHandler("poe_countdown")
 	} else {
 		if d > 0 {
 			str += fmt.Sprintf("%dd ", d)
 		}
-		if d > 0 || h > 0 { 
+		if d > 0 || h > 0 {
 			str += fmt.Sprintf("%dh ", h)
 		}
 		if d > 0 || h > 0 || m > 0 {
@@ -46,5 +46,5 @@ func poeTicker(sess *discordgo.Session) {
 		str += fmt.Sprintf("%ds", s)
 	}
 
-	sess.UpdateStatus(0, fmt.Sprintf("%s TIL POE", str))
+	sess.UpdateGameStatus(0, fmt.Sprintf("%s TIL POE", str))
 }
