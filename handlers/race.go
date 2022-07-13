@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cactauz/gobot" 
 	"github.com/bwmarrin/discordgo"
+	"github.com/cactauz/gobot"
 )
- 
+
 func init() {
 	gobot.Global.AddMessageHandler(NewPrefixHandler("!race", raceHandler))
-} 
+}
 
 type participant struct {
 	*discordgo.User
@@ -68,19 +68,19 @@ func raceHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	println(command)
 	if currentRace == nil {
 		if command != "start" {
-			s.ChannelMessageSend(m.ChannelID, "theres no race right now idiot")
+			s.ChannelMessageSend(m.ChannelID, "theres no race right now type !race start to start one")
 		} else {
 			setupNewRace(s, m.ChannelID)
 		}
 	} else {
 		switch command {
 		case "start":
-			s.ChannelMessageSend(m.ChannelID, "theres already a race in progress idiot")
+			s.ChannelMessageSend(m.ChannelID, "theres already a race in progress~")
 		case "enter":
 			if currentRace.secondsUntilStart > 0 {
 				currentRace.enterUser(m.Author)
 			} else {
-				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%v bruh the race already started", m.Author.Username))
+				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%v the race already started", m.Author.Username))
 			}
 		case "detonate":
 			if m.Author.ID == "126363515438104576" {
@@ -115,7 +115,7 @@ func (r *race) enterUser(user *discordgo.User) {
 	newParticipant := &participant{user, 0.0, false}
 
 	if r.hasParticipant(newParticipant) {
-		r.ChannelMessageSend(r.channelID, fmt.Sprintf("%v is already in the race idiot", newParticipant))
+		r.ChannelMessageSend(r.channelID, fmt.Sprintf("%v is already in the race!", newParticipant))
 		return
 	}
 

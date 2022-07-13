@@ -1,3 +1,4 @@
 runbot.sh
 .vscode/**
 node_modules
+/gobot
