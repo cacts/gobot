@@ -1,6 +1,6 @@
 package main
 
-import ( 
+import (
 	"bufio"
 	"flag"
 	"fmt"
@@ -8,13 +8,13 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/cactauz/gobot" 
+	"github.com/cactauz/gobot"
 	// load handlers
 	_ "github.com/cactauz/gobot/handlers"
 )
 
 var (
-	Token string 
+	Token string
 )
 
 func init() {
@@ -33,8 +33,7 @@ func main() {
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Bot is now running.  Type exit to quit.")
 
-
-	sc := make(chan os.Signal, 1) 
+	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 
 	inCh := make(chan string)
@@ -46,12 +45,11 @@ func main() {
 			fmt.Print("> ")
 			text, err := reader.ReadString('\n')
 
-			
-			if err != nil { 
+			if err != nil {
 				fmt.Println("error:", err)
-			} 
- 
-			if text == "exit\n" || text == "exit\r\n" { // windows pls...
+			}
+
+			if text == "exit\n" || text == "exit\r\n" { // windows :)
 				sc <- os.Interrupt
 				return
 			}
@@ -60,16 +58,14 @@ func main() {
 		}
 	}()
 
-
 	for {
 		select {
 		case <-sc:
 			return
 		case text := <-inCh:
 			if text != "" {
-				gobot.Global.SendMessage(text)  
+				gobot.Global.SendMessage(text)
 			}
 		}
 	}
 }
-  
